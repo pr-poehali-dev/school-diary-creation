@@ -64,9 +64,6 @@ const schedule = {
 const quarterGrades = subjects.map((subject, index) => ({
   subject,
   quarter1: index % 5 === 0 ? 5 : 4,
-  quarter2: index % 7 === 0 ? 5 : 4,
-  quarter3: index % 6 === 0 ? 5 : 4,
-  quarter4: index % 8 === 0 ? 5 : 4,
 }));
 
 export default function Index() {
@@ -80,8 +77,8 @@ export default function Index() {
             <Icon name="BookOpen" size={32} className="text-primary" />
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">Электронный дневник</h1>
           </div>
-          <p className="text-muted-foreground">8 класс • 2023/2024 учебный год</p>
-          <Badge variant="outline" className="mt-2">Ученик: Иванов Иван Иванович</Badge>
+          <p className="text-muted-foreground">8Е класс • 2025/2026 учебный год</p>
+          <Badge variant="outline" className="mt-2">Ученик: Котов Андрей</Badge>
         </header>
 
         <Tabs defaultValue="schedule" className="w-full">
@@ -161,9 +158,6 @@ export default function Index() {
                     <tr className="border-b-2 border-border">
                       <th className="text-left p-3 font-semibold text-foreground">Предмет</th>
                       <th className="text-center p-3 font-semibold text-foreground">I четверть</th>
-                      <th className="text-center p-3 font-semibold text-foreground">II четверть</th>
-                      <th className="text-center p-3 font-semibold text-foreground">III четверть</th>
-                      <th className="text-center p-3 font-semibold text-foreground">IV четверть</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -178,30 +172,6 @@ export default function Index() {
                             {item.quarter1}
                           </Badge>
                         </td>
-                        <td className="p-3 text-center">
-                          <Badge
-                            variant={item.quarter2 === 5 ? 'default' : 'secondary'}
-                            className={item.quarter2 === 5 ? 'bg-accent hover:bg-accent/90' : ''}
-                          >
-                            {item.quarter2}
-                          </Badge>
-                        </td>
-                        <td className="p-3 text-center">
-                          <Badge
-                            variant={item.quarter3 === 5 ? 'default' : 'secondary'}
-                            className={item.quarter3 === 5 ? 'bg-accent hover:bg-accent/90' : ''}
-                          >
-                            {item.quarter3}
-                          </Badge>
-                        </td>
-                        <td className="p-3 text-center">
-                          <Badge
-                            variant={item.quarter4 === 5 ? 'default' : 'secondary'}
-                            className={item.quarter4 === 5 ? 'bg-accent hover:bg-accent/90' : ''}
-                          >
-                            {item.quarter4}
-                          </Badge>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -214,7 +184,7 @@ export default function Index() {
         <footer className="mt-8 text-center text-sm text-muted-foreground">
           <div className="flex items-center justify-center gap-2">
             <Icon name="Shield" size={16} />
-            <span>МБОУ СОШ №1 • Электронный дневник успеваемости</span>
+            <span>МБОУ СОШ №43 • Электронный дневник успеваемости</span>
           </div>
         </footer>
       </div>
