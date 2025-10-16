@@ -61,9 +61,9 @@ const schedule = {
   ],
 };
 
-const quarterGrades = subjects.map((subject, index) => ({
+const quarterGrades = subjects.map((subject) => ({
   subject,
-  quarter1: index % 5 === 0 ? 5 : 4,
+  quarter1: subject === 'Литература' || subject === 'Геометрия' || subject === 'ОБЖ' ? 5 : 4,
 }));
 
 export default function Index() {
