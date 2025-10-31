@@ -106,14 +106,7 @@ const getStartOfWeek = (date: Date) => {
 export default function Index() {
   const [activeDay, setActiveDay] = useState('Понедельник');
   const [weeks, setWeeks] = useState<Week[]>(() => {
-    const saved = localStorage.getItem('diary-weeks');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.map((week: any) => ({
-        ...week,
-        startDate: new Date(week.startDate),
-      }));
-    }
+    localStorage.removeItem('diary-weeks');
     
     const today = new Date();
     const startDate = getStartOfWeek(new Date());
