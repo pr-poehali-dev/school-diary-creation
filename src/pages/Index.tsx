@@ -76,8 +76,8 @@ const quarterGrades = subjects.map((subject) => ({
 
 const generateRandomGrades = () => {
   const grades = [3, 4, 5];
-  const count = Math.floor(Math.random() * 3);
-  return Array.from({ length: count }, () => grades[Math.floor(Math.random() * grades.length)]);
+  const hasGrade = Math.random() > 0.3;
+  return hasGrade ? [grades[Math.floor(Math.random() * grades.length)]] : [];
 };
 
 const createWeekSchedule = () => {
