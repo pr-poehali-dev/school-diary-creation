@@ -74,20 +74,50 @@ const quarterGrades = subjects.map((subject) => ({
   quarter2: subject === 'Русский язык' || subject === 'Алгебра' || subject === 'Информатика' || subject === 'География' || subject === 'Английский язык' ? 5 : 4,
 }));
 
-const generateRandomGrades = () => {
-  const grades = [3, 4, 5];
-  const hasGrade = Math.random() > 0.3;
-  return hasGrade ? [grades[Math.floor(Math.random() * grades.length)]] : [];
-};
-
 const createWeekSchedule = () => {
   const weekSchedule: { [key: string]: Array<{ subject: string; grades: number[] }> } = {};
+  
+  const allLessons: Array<{ day: string; lesson: { subject: string } }> = [];
   Object.keys(baseSchedule).forEach((day) => {
-    weekSchedule[day] = baseSchedule[day as keyof typeof baseSchedule].map((lesson) => ({
-      ...lesson,
-      grades: generateRandomGrades(),
-    }));
+    baseSchedule[day as keyof typeof baseSchedule].forEach((lesson) => {
+      allLessons.push({ day, lesson });
+    });
   });
+  
+  const totalLessons = allLessons.length;
+  const lessonsWithGrades = Math.floor(totalLessons * 0.6);
+  const maxThrees = Math.random() > 0.5 ? 1 : 2;
+  
+  const shuffled = [...allLessons].sort(() => Math.random() - 0.5);
+  const lessonsToGrade = shuffled.slice(0, lessonsWithGrades);
+  
+  let threesCount = 0;
+  const gradesMap = new Map<string, number[]>();
+  
+  lessonsToGrade.forEach(({ day, lesson }) => {
+    const key = `${day}-${lesson.subject}`;
+    let grade: number;
+    
+    if (threesCount < maxThrees && Math.random() < 0.1) {
+      grade = 3;
+      threesCount++;
+    } else {
+      grade = Math.random() > 0.4 ? 5 : 4;
+    }
+    
+    gradesMap.set(key, [grade]);
+  });
+  
+  Object.keys(baseSchedule).forEach((day) => {
+    weekSchedule[day] = baseSchedule[day as keyof typeof baseSchedule].map((lesson) => {
+      const key = `${day}-${lesson.subject}`;
+      return {
+        ...lesson,
+        grades: gradesMap.get(key) || [],
+      };
+    });
+  });
+  
   return weekSchedule;
 };
 
