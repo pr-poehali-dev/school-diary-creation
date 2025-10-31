@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -21,53 +21,154 @@ const subjects = [
   'ОБЖ',
 ];
 
-const schedule = {
+const baseSchedule = {
   'Понедельник': [
-    { subject: 'Русский язык', grades: [4, 5] },
-    { subject: 'Алгебра', grades: [4] },
-    { subject: 'История', grades: [] },
-    { subject: 'Физика', grades: [] },
-    { subject: 'Английский язык', grades: [] },
-    { subject: 'Физкультура', grades: [] },
+    { subject: 'Русский язык' },
+    { subject: 'Алгебра' },
+    { subject: 'История' },
+    { subject: 'Физика' },
+    { subject: 'Английский язык' },
+    { subject: 'Физкультура' },
   ],
   'Вторник': [
-    { subject: 'Геометрия', grades: [4, 5] },
-    { subject: 'Литература', grades: [] },
-    { subject: 'Биология', grades: [] },
-    { subject: 'Информатика', grades: [] },
-    { subject: 'География', grades: [] },
+    { subject: 'Геометрия' },
+    { subject: 'Литература' },
+    { subject: 'Биология' },
+    { subject: 'Информатика' },
+    { subject: 'География' },
   ],
   'Среда': [
-    { subject: 'Химия', grades: [4, 4] },
-    { subject: 'Физика', grades: [5] },
-    { subject: 'Русский язык', grades: [] },
-    { subject: 'Обществознание', grades: [] },
-    { subject: 'Английский язык', grades: [] },
-    { subject: 'ОБЖ', grades: [] },
+    { subject: 'Химия' },
+    { subject: 'Физика' },
+    { subject: 'Русский язык' },
+    { subject: 'Обществознание' },
+    { subject: 'Английский язык' },
+    { subject: 'ОБЖ' },
   ],
   'Четверг': [
-    { subject: 'Алгебра', grades: [4, 4] },
-    { subject: 'История', grades: [] },
-    { subject: 'География', grades: [] },
-    { subject: 'Физкультура', grades: [] },
-    { subject: 'Литература', grades: [] },
+    { subject: 'Алгебра' },
+    { subject: 'История' },
+    { subject: 'География' },
+    { subject: 'Физкультура' },
+    { subject: 'Литература' },
   ],
   'Пятница': [
-    { subject: 'Информатика', grades: [5, 4] },
-    { subject: 'Биология', grades: [] },
-    { subject: 'Английский язык', grades: [] },
-    { subject: 'Геометрия', grades: [] },
-    { subject: 'Химия', grades: [] },
+    { subject: 'Информатика' },
+    { subject: 'Биология' },
+    { subject: 'Английский язык' },
+    { subject: 'Геометрия' },
+    { subject: 'Химия' },
   ],
 };
+
+interface Week {
+  weekNumber: number;
+  startDate: Date;
+  schedule: {
+    [key: string]: Array<{ subject: string; grades: number[] }>;
+  };
+}
 
 const quarterGrades = subjects.map((subject) => ({
   subject,
   quarter2: subject === 'Русский язык' || subject === 'Алгебра' || subject === 'Информатика' || subject === 'География' || subject === 'Английский язык' ? 5 : 4,
 }));
 
+const generateRandomGrades = () => {
+  const grades = [3, 4, 5];
+  const count = Math.floor(Math.random() * 3);
+  return Array.from({ length: count }, () => grades[Math.floor(Math.random() * grades.length)]);
+};
+
+const createWeekSchedule = () => {
+  const weekSchedule: { [key: string]: Array<{ subject: string; grades: number[] }> } = {};
+  Object.keys(baseSchedule).forEach((day) => {
+    weekSchedule[day] = baseSchedule[day as keyof typeof baseSchedule].map((lesson) => ({
+      ...lesson,
+      grades: generateRandomGrades(),
+    }));
+  });
+  return weekSchedule;
+};
+
+const getWeekNumber = (date: Date) => {
+  const startOfYear = new Date(date.getFullYear(), 0, 1);
+  const days = Math.floor((date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+  return Math.ceil((days + startOfYear.getDay() + 1) / 7);
+};
+
+const getStartOfWeek = (date: Date) => {
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(date.setDate(diff));
+};
+
 export default function Index() {
   const [activeDay, setActiveDay] = useState('Понедельник');
+  const [weeks, setWeeks] = useState<Week[]>(() => {
+    const saved = localStorage.getItem('diary-weeks');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.map((week: any) => ({
+        ...week,
+        startDate: new Date(week.startDate),
+      }));
+    }
+    
+    const today = new Date();
+    const startDate = getStartOfWeek(new Date());
+    return [{
+      weekNumber: getWeekNumber(today),
+      startDate,
+      schedule: createWeekSchedule(),
+    }];
+  });
+  const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
+
+  useEffect(() => {
+    const checkAndAddWeek = () => {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      
+      if (dayOfWeek === 0) {
+        const lastWeek = weeks[weeks.length - 1];
+        const lastWeekStart = new Date(lastWeek.startDate);
+        const nextWeekStart = new Date(lastWeekStart);
+        nextWeekStart.setDate(lastWeekStart.getDate() + 7);
+        
+        const todayStart = new Date(today);
+        todayStart.setHours(0, 0, 0, 0);
+        nextWeekStart.setHours(0, 0, 0, 0);
+        
+        if (todayStart >= nextWeekStart) {
+          const newWeek: Week = {
+            weekNumber: getWeekNumber(nextWeekStart),
+            startDate: nextWeekStart,
+            schedule: createWeekSchedule(),
+          };
+          
+          const updatedWeeks = [...weeks, newWeek];
+          setWeeks(updatedWeeks);
+          localStorage.setItem('diary-weeks', JSON.stringify(updatedWeeks));
+        }
+      }
+    };
+
+    checkAndAddWeek();
+    const interval = setInterval(checkAndAddWeek, 60 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [weeks]);
+
+  useEffect(() => {
+    localStorage.setItem('diary-weeks', JSON.stringify(weeks));
+  }, [weeks]);
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  };
+
+  const currentWeek = weeks[currentWeekIndex];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 p-4 md:p-8">
@@ -111,8 +212,29 @@ export default function Index() {
 
           <TabsContent value="schedule" className="space-y-4">
             <div className="glass-effect rounded-xl p-4 shadow-md">
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={() => setCurrentWeekIndex(Math.max(0, currentWeekIndex - 1))}
+                  disabled={currentWeekIndex === 0}
+                  className="p-2 rounded-lg hover:bg-white/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <Icon name="ChevronLeft" size={20} />
+                </button>
+                <div className="text-center">
+                  <p className="font-semibold text-foreground">Неделя {currentWeek.weekNumber}</p>
+                  <p className="text-xs text-muted-foreground">с {formatDate(currentWeek.startDate)}</p>
+                </div>
+                <button
+                  onClick={() => setCurrentWeekIndex(Math.min(weeks.length - 1, currentWeekIndex + 1))}
+                  disabled={currentWeekIndex === weeks.length - 1}
+                  className="p-2 rounded-lg hover:bg-white/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <Icon name="ChevronRight" size={20} />
+                </button>
+              </div>
+              
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {Object.keys(schedule).map((day) => (
+                {Object.keys(currentWeek.schedule).map((day) => (
                   <button
                     key={day}
                     onClick={() => setActiveDay(day)}
@@ -139,7 +261,7 @@ export default function Index() {
                     </tr>
                   </thead>
                   <tbody>
-                    {schedule[activeDay as keyof typeof schedule].map((lesson, index) => (
+                    {currentWeek.schedule[activeDay as keyof typeof currentWeek.schedule]?.map((lesson, index) => (
                       <tr key={index} className="border-b border-border/50 hover:bg-white/50 transition-all">
                         <td className="p-4 text-muted-foreground font-medium">{index + 1}</td>
                         <td className="p-4 font-medium text-foreground">{lesson.subject}</td>
